@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edu Prompt Studio V4.2 (Complete Edition)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { 
+      font-family: 'Pretendard', sans-serif; 
+      background-color: #f8f9fa; 
+      overflow: hidden; 
+      height: 100vh;
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .chip { cursor: pointer; transition: all 0.15s ease-out; font-size: 0.75rem; border-width: 1px; user-select: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+    .chip:hover { transform: translateY(-2px); box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.1); }
+    .chip:active { transform: scale(0.96); }
+    .tab-active { border-bottom: 3px solid #2563eb; color: #1e40af; font-weight: 700; }
+    .tab-inactive { color: #64748b; font-weight: 500; }
+    .template-card { transition: all 0.2s; border: 1px solid #e5e7eb; }
+    .template-card:hover { transform: translateY(-4px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); border-color: #9ca3af; }
+    
+    .scroll-container {
+      height: calc(100vh - 3.5rem - 3.5rem);
+      overflow: hidden;
+    }
+    
+    .left-scroll-area {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    
+    .right-scroll-area {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+  </style>
+</head>
+<body class="flex flex-col text-gray-800">
+
+  <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6 shadow-sm z-30 shrink-0">
+    <div class="flex items-center gap-3 lg:gap-6 overflow-x-auto">
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-700 font-bold shadow-md">🎓</div>
+        <h1 class="text-base lg:text-lg font-bold text-gray-900 tracking-tight whitespace-nowrap">Edu Prompt Studio</h1>
+        <p class="hidden sm:block text-[10px] text-gray-500 font-medium">Complete V4.2</p>
+      </div>
+      <nav class="flex space-x-3 lg:space-x-6 h-14 flex-shrink-0">
+        <button onclick="switchTab('builder')" id="btn-builder" class="tab-active h-full flex items-center gap-1 lg:gap-2 text-xs lg:text-sm transition-colors whitespace-nowrap px-2"><i class="fas fa-edit"></i><span class="hidden sm:inline"> 콘텐츠 빌더</span><span class="sm:hidden">빌더</span></button>
+        <button onclick="switchTab('templates')" id="btn-templates" class="tab-inactive h-full flex items-center gap-1 lg:gap-2 text-xs lg:text-sm transition-colors whitespace-nowrap px-2"><i class="fas fa-lightbulb"></i><span class="hidden sm:inline"> 추천 프롬프트</span><span class="sm:hidden">추천</span></button>
+        <button onclick="switchTab('guide')" id="btn-guide" class="tab-inactive h-full flex items-center gap-1 lg:gap-2 text-xs lg:text-sm transition-colors whitespace-nowrap px-2"><i class="fas fa-book-open"></i><span class="hidden sm:inline"> 사용 설명서</span><span class="sm:hidden">가이드</span></button>
+      </nav>
+    </div>
+    <div class="flex items-center gap-2 lg:gap-3 flex-shrink-0">
+        <button onclick="resetAll()" class="bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 text-xs lg:text-sm font-bold px-2 lg:px-3 py-1.5 rounded-lg border border-gray-200 transition-colors flex items-center gap-1 lg:gap-2">
+            <i class="fas fa-redo-alt"></i><span class="hidden sm:inline"> 초기화</span>
+        </button>
+    </div>
+  </header>
+
+  <main id="view-builder" class="scroll-container flex flex-row">
+    <section class="w-1/2 bg-slate-50 border-r border-gray-200 flex flex-col">
+      <div class="left-scroll-area custom-scroll p-4 lg:p-6">
+        <div class="max-w-4xl mx-auto space-y-10 pb-20">
+        
+        <div>
+            <h2 class="text-gray-700 font-bold text-sm mb-3 sticky top-0 bg-slate-50/95 backdrop-blur py-2 z-10 border-b border-slate-200 flex items-center">
+              <span class="w-6 h-6 rounded bg-gray-200 text-gray-700 flex items-center justify-center mr-2 text-xs">0</span> 주제 및 자료 (Topic & Source)
+            </h2>
+            <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+               <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">예시 TOPIC</p>
+               <div class="flex flex-wrap gap-2 mb-4">
+                   <div onclick="setText('in-source', '주제: 중학교 2학년 사회 - 세계의 기후 구분')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 중2 사회 (기후)</div>
+                   <div onclick="setText('in-source', '주제: 초등학교 5학년 과학 - 태양계와 별')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 초5 과학 (태양계)</div>
+                   <div onclick="setText('in-source', '주제: 고등학교 문학 - 윤동주의 시 세계')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 고등 문학 (시)</div>
+                   <div onclick="setText('in-source', '주제: 유치원 누리과정 - 봄의 변화 알아보기')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 유치원 (봄)</div>
+                   <div onclick="setText('in-source', '주제: 초등학교 4학년 체육 - 플라잉디스크 던지기와 받기')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 초4 체육 (플라잉디스크)</div>
+                   <div onclick="setText('in-source', '주제: 중학교 1학년 음악 - 사계 감상과 계절 표현')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 중1 음악 (사계)</div>
+                   <div onclick="setText('in-source', '주제: 초등학교 6학년 미술 - 원근법을 활용한 풍경화')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 초6 미술 (원근법)</div>
+                   <div onclick="setText('in-source', '주제: 초등학교 5학년 실과 - 안전한 인터넷 사용')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 초5 실과 (인터넷)</div>
+                   <div onclick="setText('in-source', '주제: 고등학교 정보 - 파이썬 기초 문법')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 고등 정보 (파이썬)</div>
+                   <div onclick="setText('in-source', '주제: 중학교 3학년 도덕 - AI 시대의 윤리')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1.5 rounded-lg">🏷️ 중3 도덕 (AI윤리)</div>
+               </div>
+
+               <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">WITH SOURCE MATERIAL</p>
+               <div class="flex flex-wrap gap-2">
+                   <div onclick="addText('in-source', '다음 텍스트 내용을 바탕으로 만들어줘:\n\n[여기에 내용을 붙여넣으세요]')" class="chip bg-gray-50 border-gray-200 text-gray-800 px-3 py-1.5 rounded-lg">📝 텍스트 직접 입력</div>
+                   <div onclick="addText('in-source', '다음 웹사이트 링크의 내용을 참고해줘:\n\n[웹페이지 링크]')" class="chip bg-gray-50 border-gray-200 text-gray-800 px-3 py-1.5 rounded-lg">🔗 웹사이트 링크</div>
+                   <div onclick="addText('in-source', '첨부된 PDF/이미지 파일을 분석해서 내용을 추출해줘.\n파일명: [파일 업로드 시 자동 입력됨]')" class="chip bg-gray-50 border-gray-200 text-gray-800 px-3 py-1.5 rounded-lg">📂 PDF/문서 파일</div>
+                   <div onclick="addText('in-source', '다음 유튜브 영상의 내용을 바탕으로 해줘:\n\n[유튜브 링크]')" class="chip bg-gray-50 border-gray-200 text-gray-800 px-3 py-1.5 rounded-lg">📺 유튜브 영상</div>
+               </div>
+            </div>
+        </div>
+
+        <div>
+          <h2 class="text-blue-700 font-bold text-sm mb-3 sticky top-0 bg-slate-50/95 backdrop-blur py-2 z-10 border-b border-slate-200 flex items-center">
+            <span class="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center mr-2 text-xs">1</span> 결과물 형태 (Output Type)
+          </h2>
+          <div class="space-y-3">
+             <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">WEB APP & GAME (웹 개발자 모드)</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="setText('in-type', 'HTML/JS 기반의 학습용 웹 게임(Web Game)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🎮 웹 게임</div>
+                    <div onclick="setText('in-type', '인터랙티브 웹 퀴즈(Web Quiz) & 결과 분석')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">❓ 웹 퀴즈</div>
+                    <div onclick="setText('in-type', '현상 원리 이해를 위한 웹 시뮬레이션(Web Simulation)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🧪 웹 시뮬레이션</div>
+                    <div onclick="setText('in-type', '데이터 시각화 웹 대시보드(Web Dashboard)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">📊 웹 대시보드</div>
+                    <div onclick="setText('in-type', '반응형 인터랙티브 타임라인(Timeline)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">⏳ 타임라인</div>
+                    <div onclick="setText('in-type', '드래그 앤 드롭(Drag & Drop) 분류 활동')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">👆 드래그 앤 드롭</div>
+                    <div onclick="setText('in-type', '가상 채팅 시뮬레이터(Chat Simulator)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">💬 채팅 시뮬레이터</div>
+                    <div onclick="setText('in-type', 'Mermaid.js를 활용한 마인드맵(Mind Map) 웹앱')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🧠 마인드맵</div>
+                    <div onclick="setText('in-type', 'HTML/CSS 기반의 웹 슬라이드(Web PPT)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🖥️ 웹 슬라이드 (PPT)</div>
+                    <div onclick="setText('in-type', '구글 Slides로 내보내기 가능한 슬라이드 10장 작성해줘')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🟧 구글 슬라이드</div>
+                    <div onclick="setText('in-type', '3D 가상공간 체험형 학습 웹앱 (메타버스 컨셉)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🌐 메타버스 체험</div>
+                    <div onclick="setText('in-type', 'AI 챗봇 튜터 (학습자 맞춤형 대화형 학습)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🤖 AI 튜터</div>
+                    <div onclick="setText('in-type', '코딩 실습 웹 IDE (블록코딩 또는 텍스트코딩)')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">💻 코딩 실습</div>
+                    <div onclick="setText('in-type', 'VR/AR 체험형 콘텐츠 스토리보드')" class="chip bg-blue-50 border-blue-100 text-blue-800 px-3 py-1.5 rounded-lg">🥽 VR/AR 컨셉</div>
+                </div>
+             </div>
+             <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">VISUAL & DOCUMENT (기획자/화가 모드)</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="setText('in-type', '교육용 카드뉴스(Card News) 이미지 생성')" class="chip bg-indigo-50 border-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg">🃏 카드뉴스 (이미지)</div>
+                    <div onclick="setText('in-type', '핵심 개념 인포그래픽(Infographic) 이미지 생성')" class="chip bg-indigo-50 border-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg">🗺️ 인포그래픽 (이미지)</div>
+                    <div onclick="setText('in-type', '수업 지도안(Lesson Plan)')" class="chip bg-indigo-50 border-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg">📜 수업 지도안</div>
+                    <div onclick="setText('in-type', '학습 활동지 및 웹 문서(Web Document)')" class="chip bg-indigo-50 border-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg">📄 활동지/문서</div>
+                    <div onclick="setText('in-type', '수행평가 계획서 및 채점 기준표(루브릭)')" class="chip bg-indigo-50 border-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg">📋 수행평가 계획</div>
+                    <div onclick="setText('in-type', '과정중심평가 관찰 체크리스트')" class="chip bg-indigo-50 border-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg">✅ 평가 체크리스트</div>
+                </div>
+             </div>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-indigo-700 font-bold text-sm mb-3 sticky top-0 bg-slate-50/95 backdrop-blur py-2 z-10 border-b border-slate-200 flex items-center">
+            <span class="w-6 h-6 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center mr-2 text-xs">2</span> 대상 및 목표 (Target & Goal)
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+             <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">TARGET AUDIENCE</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-target', '대상: 초등학교 저학년(1~2학년) - 쉽고 직관적인 언어, 흥미 위주')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">👶 초등 저학년</div>
+                    <div onclick="addText('in-target', '대상: 초등학교 고학년(4~6학년) - 구체적 조작기, 탐구심 자극')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">👦 초등 고학년</div>
+                    <div onclick="addText('in-target', '대상: 중학생 - 형식적 조작기, 논리적 연결성 강조')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">🧑‍🏫 중학생</div>
+                    <div onclick="addText('in-target', '대상: 고등학생 - 심화 탐구, 입시 및 진로 연계')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">🎓 고등학생</div>
+                    <div onclick="addText('in-target', '대상: 교사 및 교직원 - 전문성 신장, 업무 효율화')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">💼 교사/연수</div>
+                    <div onclick="addText('in-target', '대상: 느린 학습자 - 반복 학습, 작은 단계로 쪼개기(Step-by-step)')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">🐢 느린 학습자</div>
+                    <div onclick="addText('in-target', '대상: 특수교육 대상(통합학급) - 개별화 지원, 다감각 활용')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">♿ 특수교육</div>
+                    <div onclick="addText('in-target', '대상: 영재교육 대상 - 확산적 사고, 창의적 문제해결')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">⭐ 영재교육</div>
+                    <div onclick="addText('in-target', '대상: 다문화 학생 - 한국어 수준 고려, 시각자료 강화')" class="chip bg-gray-50 border-gray-200 text-gray-700 px-2 py-1 rounded">🌍 다문화</div>
+                </div>
+             </div>
+             <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+                <p class="text-[10px] text-purple-600 font-bold mb-2 tracking-wider">COMPETENCY & GOAL</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-target', '목표: 핵심 지식 습득 및 암기 (Knowledge Acquisition)')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-2 py-1 rounded">🧠 지식 습득</div>
+                    <div onclick="addText('in-target', '목표: 비판적 사고력 함양 (Critical Thinking)')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-2 py-1 rounded">⚖️ 비판적 사고</div>
+                    <div onclick="addText('in-target', '목표: 복합적 문제 해결 능력 (Complex Problem Solving)')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-2 py-1 rounded">🧩 문제 해결</div>
+                    <div onclick="addText('in-target', '목표: 협업 및 의사소통 능력 (Collaboration & Communication)')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-2 py-1 rounded">🤝 협력/소통</div>
+                    <div onclick="addText('in-target', '목표: 창의적 아이디어 발산 (Creativity & Innovation)')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-2 py-1 rounded">🎨 창의성</div>
+                    <div onclick="addText('in-target', '목표: 디지털 리터러시 및 정보 윤리 (Digital Literacy)')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-2 py-1 rounded">💻 디지털 리터러시</div>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-pink-600 font-bold text-sm mb-3 sticky top-0 bg-slate-50/95 backdrop-blur py-2 z-10 border-b border-slate-200 flex items-center">
+            <span class="w-6 h-6 rounded bg-pink-100 text-pink-600 flex items-center justify-center mr-2 text-xs">3</span> 교수법 및 전략 (Pedagogy)
+          </h2>
+          <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-4">
+             <div>
+                 <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">TEACHING MODELS</p>
+                 <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-pedagogy', '- 게이미피케이션(Gamification): 레벨, 배지, 보상, 랭킹 시스템 적용')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-gamepad"></i> 게이미피케이션</div>
+                    <div onclick="addText('in-pedagogy', '- PBL(Project Based Learning): 실생활 문제 해결 프로젝트')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-project-diagram"></i> PBL</div>
+                    <div onclick="addText('in-pedagogy', '- 하브루타(Havruta): 짝과 질문하고 토론하는 대화형 구조')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-comments"></i> 하브루타</div>
+                    <div onclick="addText('in-pedagogy', '- 디자인 씽킹(Design Thinking): 공감-정의-아이디어-프로토타입-테스트')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-lightbulb"></i> 디자인 씽킹</div>
+                    <div onclick="addText('in-pedagogy', '- 탐구 학습(Inquiry-Based): 가설 설정 및 검증 과정')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-search"></i> 탐구 학습</div>
+                    <div onclick="addText('in-pedagogy', '- 거꾸로 수업(Flipped Learning): 사전 개념 학습 후 심화 활동')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-undo"></i> 플립러닝</div>
+                    <div onclick="addText('in-pedagogy', '- 메이커교육(Maker Education): 직접 만들고 실험하며 배우기')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-hammer"></i> 메이커교육</div>
+                    <div onclick="addText('in-pedagogy', '- 백워드 설계(Backward Design): 평가→학습활동→목표 역순 설계')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-arrow-left"></i> 백워드 설계</div>
+                    <div onclick="addText('in-pedagogy', '- STEAM 융합교육: 과학/기술/공학/예술/수학 통합')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-flask"></i> STEAM</div>
+                    <div onclick="addText('in-pedagogy', '- 액션러닝(Action Learning): 실제 문제 해결 프로젝트')" class="chip bg-pink-50 border-pink-200 text-pink-900 px-2 py-1.5 rounded"><i class="fas fa-running"></i> 액션러닝</div>
+                 </div>
+             </div>
+             <div>
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">STRATEGIES</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-pedagogy', '전략: 스캐폴딩(Scaffolding) - 단계별 힌트와 도움말(ZPD 고려)')" class="chip bg-gray-100 text-gray-600 border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">🪜 스캐폴딩</div>
+                    <div onclick="addText('in-pedagogy', '전략: 소크라테스식 발문법 - 끊임없는 질문으로 스스로 답 찾기')" class="chip bg-gray-100 text-gray-600 border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">🤔 소크라테스 발문</div>
+                    <div onclick="addText('in-pedagogy', '전략: 비주얼 씽킹(Visual Thinking) - 이미지와 도식으로 개념 구조화')" class="chip bg-gray-100 text-gray-600 border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">👁️ 비주얼 씽킹</div>
+                    <div onclick="addText('in-pedagogy', '전략: 블룸의 택소노미(Bloom\\'s Taxonomy) - 기억>이해>적용>분석>평가>창조')" class="chip bg-gray-100 text-gray-600 border-gray-200 px-3 py-1.5 rounded-lg shadow-sm">📈 블룸 택소노미</div>
+                </div>
+             </div>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-orange-600 font-bold text-sm mb-3 sticky top-0 bg-slate-50/95 backdrop-blur py-2 z-10 border-b border-slate-200 flex items-center">
+            <span class="w-6 h-6 rounded bg-orange-100 text-orange-600 flex items-center justify-center mr-2 text-xs">4</span> 구성 및 톤 (Tone & Components)
+          </h2>
+          <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm space-y-4">
+             <div>
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">TONE & VOICE</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-tone', '- 친근하고 격려하는 어조 (해요체, 이모지, 칭찬 위주)')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">🥰 친근/격려</div>
+                    <div onclick="addText('in-tone', '- 논리적이고 분석적인 어조 (하십시오체, 객관적 데이터)')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">🧐 논리/분석</div>
+                    <div onclick="addText('in-tone', '- 유머러스하고 위트 있는 문체 (밈, 유행어 적절 활용)')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">🤣 유머/위트</div>
+                    <div onclick="addText('in-tone', '- 탐정/수사관 컨셉 (미스터리 해결, 단서 찾기)')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">🕵️‍♂️ 탐정 컨셉</div>
+                </div>
+             </div>
+             <div>
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">ESSENTIAL COMPONENTS</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-tone', '- 도입(Hook): 흥미 유발 질문, 놀라운 사실, 관련 뉴스')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">🪝 도입(Hook)</div>
+                    <div onclick="addText('in-tone', '- 전개(Example): 구체적인 사례, 비유(Metaphor), 반례(Counter-example)')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">🍎 예시/비유</div>
+                    <div onclick="addText('in-tone', '- 정리(Wrap-up): 핵심 3줄 요약, 마인드맵 정리')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">📝 요약 정리</div>
+                    <div onclick="addText('in-tone', '- 평가(Quiz): 형성 평가 퀴즈(OX, 선다형), 빈칸 채우기')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">✅ 형성 평가</div>
+                    <div onclick="addText('in-tone', '- 성찰(Reflection): 배운 점, 느낀 점, 더 알고 싶은 점 적기')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded">💭 성찰 질문</div>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-teal-600 font-bold text-sm mb-3 sticky top-0 bg-slate-50/95 backdrop-blur py-2 z-10 border-b border-slate-200 flex items-center">
+            <span class="w-6 h-6 rounded bg-teal-100 text-teal-600 flex items-center justify-center mr-2 text-xs">5</span> 디자인 & 스타일 (Design & Style)
+          </h2>
+          <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm space-y-4">
+             <div>
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">FAMOUS APP STYLE</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-design', '- 카카오톡 스타일 (KakaoTalk): 노란색 배경, 말풍선 대화형 UI')" class="chip bg-yellow-50 border-yellow-200 text-yellow-800 px-3 py-1 rounded"><i class="fas fa-comment"></i> 카카오톡</div>
+                    <div onclick="addText('in-design', '- 네이버 스타일 (Naver): 초록색(#03C75A) 포인트, 직관적인 검색창/카드 UI')" class="chip bg-green-50 border-green-200 text-green-800 px-3 py-1 rounded"><i class="fas fa-search"></i> 네이버</div>
+                    <div onclick="addText('in-design', '- 토스 스타일 (Toss): 파란색 포인트, 굵은 폰트, 넓은 여백, 미니멀리즘')" class="chip bg-blue-50 border-blue-200 text-blue-800 px-3 py-1 rounded"><i class="fas fa-wallet"></i> 토스(Toss)</div>
+                    <div onclick="addText('in-design', '- 인스타그램 스타일 (Instagram): 그라데이션, 이미지 중심, 하트/댓글 아이콘')" class="chip bg-pink-50 border-pink-200 text-pink-800 px-3 py-1 rounded"><i class="fab fa-instagram"></i> 인스타그램</div>
+                    <div onclick="addText('in-design', '- 넷플릭스 스타일 (Netflix): 검은 배경(Dark), 붉은색 포인트, 가로 스크롤')" class="chip bg-gray-900 border-gray-700 text-red-500 px-3 py-1 rounded"><i class="fas fa-play"></i> 넷플릭스</div>
+                    <div onclick="addText('in-design', '- 유튜브 스타일 (YouTube): 화이트/레드 테마, 썸네일 그리드 배열')" class="chip bg-red-50 border-red-200 text-red-800 px-3 py-1 rounded"><i class="fab fa-youtube"></i> 유튜브</div>
+                    <div onclick="addText('in-design', '- 배달의민족 스타일: 민트색 포인트, 귀여운 일러스트, 재미있는 폰트')" class="chip bg-teal-50 border-teal-200 text-teal-800 px-3 py-1 rounded"><i class="fas fa-motorcycle"></i> 배민</div>
+                    <div onclick="addText('in-design', '- 당근마켓 스타일: 주황색 포인트, 따뜻한 커뮤니티 느낌, 둥근 버튼')" class="chip bg-orange-50 border-orange-200 text-orange-800 px-3 py-1 rounded"><i class="fas fa-carrot"></i> 당근마켓</div>
+                    <div onclick="addText('in-design', '- 쿠팡 스타일: 로켓배송 파란색, 강렬한 CTA 버튼, 상품 중심')" class="chip bg-blue-50 border-blue-200 text-blue-800 px-3 py-1 rounded"><i class="fas fa-rocket"></i> 쿠팡</div>
+                    <div onclick="addText('in-design', '- 클래스101 스타일: 부드러운 파스텔, 손글씨 느낌, 크리에이티브')" class="chip bg-purple-50 border-purple-200 text-purple-800 px-3 py-1 rounded"><i class="fas fa-paint-brush"></i> 클래스101</div>
+                </div>
+             </div>
+             <div>
+                <p class="text-[10px] text-gray-400 font-bold mb-2 tracking-wider">VISUAL THEME & MOOD</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-design', '- 파스텔 톤 (Pastel): 부드럽고 따뜻한 색감, 심리적 안정감')" class="chip bg-teal-50 border-teal-200 text-teal-800 px-3 py-1 rounded">🎨 파스텔 톤</div>
+                    <div onclick="addText('in-design', '- 칠판/분필 테마 (Chalkboard): 학교 교실 분위기, 손글씨 폰트')" class="chip bg-teal-50 border-teal-200 text-teal-800 px-3 py-1 rounded">🏫 칠판 테마</div>
+                    <div onclick="addText('in-design', '- 픽셀 아트 (Pixel Art): 레트로 게임 감성, 8비트 스타일')" class="chip bg-teal-50 border-teal-200 text-teal-800 px-3 py-1 rounded">👾 픽셀 아트</div>
+                    <div onclick="addText('in-design', '- 다크 모드 (Dark Mode): 눈이 편안한 어두운 배경, 형광색 강조')" class="chip bg-teal-50 border-teal-200 text-teal-800 px-3 py-1 rounded">🌑 다크 모드</div>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-green-600 font-bold text-sm mb-3 sticky top-0 bg-slate-50/95 backdrop-blur py-2 z-10 border-b border-slate-200 flex items-center">
+            <span class="w-6 h-6 rounded bg-green-100 text-green-600 flex items-center justify-center mr-2 text-xs">6</span> 형식 및 옵션 (Format & Options)
+          </h2>
+          <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm space-y-4">
+             
+             <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                <p class="text-[10px] text-blue-700 font-bold mb-2 tracking-wider"><i class="fas fa-code mr-1"></i>TECH & CODE (웹 개발자 모드 전용)</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-format', '- HTML/CSS/JS 단일 파일(Single File)로 코드 생성')" class="chip bg-white border-blue-300 text-blue-800 px-3 py-1 rounded shadow-sm">💻 전체 코드 작성</div>
+                    <div onclick="addText('in-format', '- Tailwind CSS CDN을 활용한 디자인 적용')" class="chip bg-white border-blue-300 text-blue-800 px-3 py-1 rounded shadow-sm">🎨 Tailwind 디자인</div>
+                    <div onclick="addText('in-format', '- Chart.js (차트), Three.js (3D) 라이브러리 활용')" class="chip bg-white border-blue-300 text-blue-800 px-3 py-1 rounded shadow-sm">📊 차트/3D</div>
+                    <div onclick="addText('in-format', '- SweetAlert2 (예쁜 팝업), Confetti (폭죽) 효과 적용')" class="chip bg-white border-blue-300 text-blue-800 px-3 py-1 rounded shadow-sm">🎉 팝업/폭죽</div>
+                    <div onclick="addText('in-format', '- Speech API (음성 인식/합성) 기능 추가')" class="chip bg-white border-blue-300 text-blue-800 px-3 py-1 rounded shadow-sm">🗣️ 음성 기능</div>
+                </div>
+             </div>
+
+             <div class="bg-green-50/50 p-3 rounded-lg border border-green-100">
+                <p class="text-[10px] text-green-700 font-bold mb-2 tracking-wider"><i class="fas fa-file-alt mr-1"></i>DOCUMENT FORMAT</p>
+                <div class="flex flex-wrap gap-2">
+                    <div onclick="addText('in-format', '- 마크다운(Markdown) 형식으로 구조화하여 출력')" class="chip bg-white border-green-300 text-green-800 px-3 py-1 rounded shadow-sm">📝 마크다운</div>
+                    <div onclick="addText('in-format', '- 표(Table) 형태로 정리하여 비교/분석')" class="chip bg-white border-green-300 text-green-800 px-3 py-1 rounded shadow-sm">📅 도표 정리</div>
+                    <div onclick="addText('in-format', '- 평가 루브릭(Rubric) 및 채점 기준표 포함')" class="chip bg-white border-teal-300 text-teal-800 px-3 py-1 rounded shadow-sm">📏 평가 루브릭</div>
+                    <div onclick="addText('in-format', '- 과정 중심 평가 체크리스트(Checklist) 포함')" class="chip bg-white border-teal-300 text-teal-800 px-3 py-1 rounded shadow-sm">☑️ 평가 체크리스트</div>
+                </div>
+             </div>
+          </div>
+        </div>
+
+      </div>
+      </div>
+    </section>
+
+    <section class="w-1/2 bg-white flex flex-col">
+      <div class="right-scroll-area custom-scroll p-6">
+        <div class="max-w-2xl mx-auto space-y-5">
+            
+          <div class="group">
+             <div class="flex justify-between items-center mb-1">
+                <label class="flex items-center text-sm font-bold text-gray-700"><i class="fas fa-paperclip mr-2"></i>0. 주제 및 자료 (Topic & Source)</label>
+                <button onclick="showFileGuide()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs px-2 py-1 rounded border border-blue-300 flex items-center gap-1 transition shadow-sm">
+    <i class="fas fa-info-circle"></i> 파일 첨부 방법
+</button>
+             </div>
+             <textarea id="in-source" rows="4" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-400 focus:outline-none resize-none transition text-sm text-gray-800" placeholder="만들고 싶은 주제(예: 중2 사회 기후)를 적거나, 참고할 자료 내용을 붙여넣으세요."></textarea>
+          </div>
+
+          <div class="group">
+            <label class="flex items-center text-sm font-bold text-blue-700 mb-1">
+                <i class="fas fa-cube mr-2"></i>1. 결과물 형태 <span class="text-red-500 ml-1">*</span>
+            </label>
+            <textarea id="in-type" rows="2" class="w-full p-3 bg-blue-50 border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none transition text-sm text-gray-800" placeholder="왼쪽에서 만들고 싶은 콘텐츠 종류를 선택하세요. (필수)"></textarea>
+          </div>
+          <div class="group">
+            <label class="flex items-center text-sm font-bold text-indigo-700 mb-1"><i class="fas fa-bullseye mr-2"></i>2. 대상 및 목표</label>
+            <textarea id="in-target" rows="3" class="w-full p-3 bg-indigo-50 border border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none transition text-sm text-gray-800" placeholder="학습 대상과 교육 목표를 설정하세요."></textarea>
+          </div>
+          <div class="group">
+            <label class="flex items-center text-sm font-bold text-pink-700 mb-1"><i class="fas fa-chalkboard-teacher mr-2"></i>3. 교수법</label>
+            <textarea id="in-pedagogy" rows="3" class="w-full p-3 bg-pink-50 border border-pink-100 rounded-xl focus:ring-2 focus:ring-pink-500 focus:outline-none resize-none transition text-sm text-gray-800" placeholder="적용할 교육 모델이나 전략을 선택하세요."></textarea>
+          </div>
+          <div class="group">
+             <div class="flex gap-4">
+                <div class="w-1/2">
+                    <label class="flex items-center text-sm font-bold text-orange-700 mb-1"><i class="fas fa-smile mr-2"></i>4. 톤앤매너</label>
+                    <textarea id="in-tone" rows="4" class="w-full p-3 bg-orange-50 border border-orange-100 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none resize-none transition text-sm text-gray-800" placeholder="어조 및 구성 요소"></textarea>
+                </div>
+                <div class="w-1/2">
+                    <label class="flex items-center text-sm font-bold text-teal-700 mb-1"><i class="fas fa-palette mr-2"></i>5. 디자인</label>
+                    <textarea id="in-design" rows="4" class="w-full p-3 bg-teal-50 border border-teal-100 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none resize-none transition text-sm text-gray-800" placeholder="원하는 앱 스타일이나 색감 테마"></textarea>
+                </div>
+             </div>
+          </div>
+          <div class="group">
+            <label class="flex items-center text-sm font-bold text-green-700 mb-1"><i class="fas fa-list-ul mr-2"></i>6. 형식 및 옵션</label>
+            <textarea id="in-format" rows="4" class="w-full p-3 bg-green-50 border border-green-100 rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none resize-none transition text-sm text-gray-800" placeholder="출력 형식 및 추가 요청"></textarea>
+          </div>
+
+          <div class="pt-4 pb-6">
+            <button onclick="generateAndCopy()" class="w-full bg-gray-900 hover:bg-black text-white text-base font-bold py-3.5 px-8 rounded-full shadow-lg transform hover:-translate-y-1 transition flex items-center justify-center gap-2">
+              <i class="fas fa-magic"></i>
+              <span>프롬프트 생성 & 복사</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  </main>
+  <main id="view-templates" class="hidden scroll-container overflow-y-auto custom-scroll bg-gray-50 p-6 md:p-10">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-10">
+            <h2 class="text-2xl font-black text-gray-800 mb-2">📚 Best Prompts (Top 20)</h2>
+            <p class="text-gray-500 text-sm">선생님들이 가장 많이 찾는<br><b>교육용 콘텐츠 프롬프트 20선</b>입니다. 클릭하면 복사됩니다.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-20">
+            <div onclick="copyTemplate(0)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="fas fa-history"></i></div><h3 class="font-bold text-gray-800">역사 타임라인 웹앱</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">특정 사건의 전개 과정을 스크롤에 따라 보여주는 반응형 웹 타임라인.</p><span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded font-bold">#역사 #시각화</span></div>
+            <div onclick="copyTemplate(1)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center"><i class="fas fa-flask"></i></div><h3 class="font-bold text-gray-800">과학 실험 시뮬레이션</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">중력 가속도, 화학 반응 등 변수를 조절하며 결과를 관찰하는 웹앱.</p><span class="text-[10px] bg-yellow-50 text-yellow-600 px-2 py-1 rounded font-bold">#과학 #실험</span></div>
+            <div onclick="copyTemplate(2)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><i class="fas fa-comments"></i></div><h3 class="font-bold text-gray-800">문학 캐릭터 챗봇</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">소설 속 등장인물이 되어 학생과 대화하는 롤플레잉 프롬프트.</p><span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold">#국어 #AI채팅</span></div>
+            <div onclick="copyTemplate(3)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><i class="fas fa-images"></i></div><h3 class="font-bold text-gray-800">교육용 카드뉴스</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">복잡한 개념을 5장의 이미지 슬라이드로 요약하는 스토리텔링 기획.</p><span class="text-[10px] bg-green-50 text-green-600 px-2 py-1 rounded font-bold">#시각자료 #요약</span></div>
+            <div onclick="copyTemplate(4)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center"><i class="fas fa-question-circle"></i></div><h3 class="font-bold text-gray-800">게이미피케이션 퀴즈</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">방탈출 게임 스타일의 문제 풀이와 힌트 제공 로직 설계.</p><span class="text-[10px] bg-orange-50 text-orange-600 px-2 py-1 rounded font-bold">#게임 #퀴즈</span></div>
+            <div onclick="copyTemplate(5)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fas fa-gavel"></i></div><h3 class="font-bold text-gray-800">찬반 토론 가이드</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">사회 이슈에 대한 입론-반론-최종변론 구조의 토론 수업 자료.</p><span class="text-[10px] bg-purple-50 text-purple-600 px-2 py-1 rounded font-bold">#사회 #토론</span></div>
+            <div onclick="copyTemplate(6)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><i class="fas fa-exclamation-triangle"></i></div><h3 class="font-bold text-gray-800">안전 교육 인포그래픽</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">지진, 화재 대피 요령을 아이콘 위주로 설명하는 HTML/CSS 디자인.</p><span class="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded font-bold">#안전 #디자인</span></div>
+            <div onclick="copyTemplate(7)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center"><i class="fas fa-map-marked-alt"></i></div><h3 class="font-bold text-gray-800">지리 대시보드</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">각 나라의 기후, 인구 데이터를 차트와 지도로 보여주는 웹앱.</p><span class="text-[10px] bg-teal-50 text-teal-600 px-2 py-1 rounded font-bold">#지리 #데이터</span></div>
+            <div onclick="copyTemplate(8)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center"><i class="fas fa-language"></i></div><h3 class="font-bold text-gray-800">영어 단어 매칭 게임</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">그림과 단어를 선으로 잇거나 드래그 앤 드롭하는 학습 게임 코드.</p><span class="text-[10px] bg-pink-50 text-pink-600 px-2 py-1 rounded font-bold">#영어 #단어</span></div>
+            <div onclick="copyTemplate(9)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><i class="fas fa-laptop-code"></i></div><h3 class="font-bold text-gray-800">알고리즘 순서도</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">라면 끓이기 등 일상 소재로 코딩 논리를 설명하는 다이어그램 생성.</p><span class="text-[10px] bg-gray-50 text-gray-600 px-2 py-1 rounded font-bold">#정보 #SW</span></div>
+            <div onclick="copyTemplate(10)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center"><i class="fas fa-poll"></i></div><h3 class="font-bold text-gray-800">학급 규칙 만들기</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">학생들이 직접 규칙을 제안하고 투표하는 민주적 학급회의 웹 도구.</p><span class="text-[10px] bg-cyan-50 text-cyan-600 px-2 py-1 rounded font-bold">#자치 #학급운영</span></div>
+            <div onclick="copyTemplate(11)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center"><i class="fas fa-calculator"></i></div><h3 class="font-bold text-gray-800">수학 원리 계산기</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">피타고라스 정리, 근의 공식 과정을 시각적으로 보여주는 계산기.</p><span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-1 rounded font-bold">#수학 #도구</span></div>
+            <div onclick="copyTemplate(12)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center"><i class="fas fa-running"></i></div><h3 class="font-bold text-gray-800">체육 기록 측정 앱</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">스톱워치, 달리기/점프 기록 자동 측정 및 순위표 생성 웹앱.</p><span class="text-[10px] bg-violet-50 text-violet-600 px-2 py-1 rounded font-bold">#체육 #기록</span></div>
+            <div onclick="copyTemplate(13)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-lime-100 text-lime-600 flex items-center justify-center"><i class="fas fa-music"></i></div><h3 class="font-bold text-gray-800">음악 리듬 게임</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">리듬에 맞춰 버튼 누르기, 음표 읽기 연습 미니 게임.</p><span class="text-[10px] bg-lime-50 text-lime-600 px-2 py-1 rounded font-bold">#음악 #리듬</span></div>
+            <div onclick="copyTemplate(14)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fas fa-palette"></i></div><h3 class="font-bold text-gray-800">미술 색채 믹서</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">RGB/HSL 컬러 믹싱 시뮬레이션과 색상환 학습 도구.</p><span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-1 rounded font-bold">#미술 #색채</span></div>
+            <div onclick="copyTemplate(15)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fas fa-seedling"></i></div><h3 class="font-bold text-gray-800">환경 보호 캠페인</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">탄소발자국 계산기, 재활용 분류 퀴즈 통합 웹앱.</p><span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded font-bold">#환경 #캠페인</span></div>
+            <div onclick="copyTemplate(16)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center"><i class="fas fa-robot"></i></div><h3 class="font-bold text-gray-800">AI 윤리 시나리오</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">AI 윤리 딜레마 상황별 선택 시뮬레이션과 토론 가이드.</p><span class="text-[10px] bg-sky-50 text-sky-600 px-2 py-1 rounded font-bold">#AI #윤리</span></div>
+            <div onclick="copyTemplate(17)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center"><i class="fas fa-brain"></i></div><h3 class="font-bold text-gray-800">기억력 훈련 게임</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">숫자/이미지/패턴 기억 및 단기기억력 향상 미니게임 모음.</p><span class="text-[10px] bg-fuchsia-50 text-fuchsia-600 px-2 py-1 rounded font-bold">#두뇌 #기억</span></div>
+            <div onclick="copyTemplate(18)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><i class="fas fa-book-reader"></i></div><h3 class="font-bold text-gray-800">독서 기록장</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">읽은 책 기록, 별점 및 한줄평, 독서 통계 그래프 제공.</p><span class="text-[10px] bg-slate-50 text-slate-600 px-2 py-1 rounded font-bold">#독서 #기록</span></div>
+            <div onclick="copyTemplate(19)" class="template-card bg-white p-5 rounded-2xl cursor-pointer group"><div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center"><i class="fas fa-globe-asia"></i></div><h3 class="font-bold text-gray-800">세계 문화 탐험</h3></div><p class="text-xs text-gray-500 mb-3 leading-relaxed">국가별 문화·언어·음식 소개 인터랙티브 세계지도.</p><span class="text-[10px] bg-orange-50 text-orange-600 px-2 py-1 rounded font-bold">#문화 #세계</span></div>
+        </div>
+    </div>
+  </main>
+
+  <main id="view-guide" class="hidden scroll-container overflow-y-auto custom-scroll bg-gray-50 p-6 md:p-10">
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+      <h2 class="text-2xl font-black text-gray-800 mb-6 flex items-center">
+        <span class="w-10 h-10 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mr-3 text-xl">📖</span>
+        Edu Prompt Studio 200% 활용하기
+      </h2>
+      
+      <div class="space-y-8">
+        <div class="flex gap-4">
+          <div class="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center font-bold">0</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">주제만 적어도, 자료를 넣어도 OK!</h3>
+            <p class="text-gray-600 leading-relaxed text-sm">
+              <span class="bg-gray-100 px-1 rounded font-bold text-gray-800">'0. 주제 및 자료'</span> 칸은 만능입니다.<br>
+              자료가 없다면 <b>"중2 사회 - 기후", "초등 5학년 - 태양계"</b>처럼 주제만 적으세요. AI가 배경지식을 활용해 콘텐츠를 만듭니다.<br>
+              특정 내용을 활용하고 싶으면 텍스트를 그대로 붙여넣거나 pdf파일 업로드하면 됩니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold">1</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">무엇을 만들고 싶으신가요? (필수)</h3>
+            <p class="text-gray-600 leading-relaxed text-sm">
+              가장 먼저 <span class="text-blue-600 font-bold">'1. 결과물 형태'</span>를 선택해주세요. 웹 게임, 퀴즈, 카드뉴스 등 선생님이 필요한 수업 도구의 종류를 AI에게 알려주는 가장 중요한 단계입니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex-shrink-0 w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold">2</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">클릭으로 디테일 더하기</h3>
+            <p class="text-gray-600 leading-relaxed text-sm">
+              대상, 교수법, 톤앤매너 등 원하는 옵션을 칩(Chip) 버튼을 눌러 추가하세요. 교육학 박사의 노하우가 담긴 전문적인 용어들이 자동으로 입력됩니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex-shrink-0 w-8 h-8 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center font-bold">3</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">고민되는 항목은 비워두세요! ✨</h3>
+            <p class="text-gray-600 leading-relaxed text-sm">
+              <span class="bg-yellow-100 px-1 rounded font-bold text-gray-800">디자인, 교수법, 톤앤매너</span> 등 딱히 생각나지 않는 항목은 <b>과감히 비워두고 넘어가셔도 됩니다.</b><br>
+              빈칸으로 두시면, AI가 알아서 가장 적절하고 보편적인 <b>'Standard 설정'</b>으로 채워서 완성해줍니다.<br>
+              <span class="text-blue-600 font-bold">'1. 결과물 형태'</span>만 선택하면 나머지는 AI에게 맡기세요! 부담 갖지 마세요. 😊
+            </p>
+          </div>
+        </div>
+
+        <div class="flex gap-4">
+          <div class="flex-shrink-0 w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center font-bold">4</div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-lg mb-1">AI에게 붙여넣기만 하면 끝!</h3>
+            <p class="text-gray-600 leading-relaxed text-sm">
+              [프롬프트 생성 & 복사] 버튼을 누른 뒤, 사용하시는 AI (ChatGPT, Claude, Gemini) 채팅창에 <b>붙여넣기(Ctrl+V)</b> 하세요.<br>
+              프롬프트에는 AI가 최적의 코딩 모드(Canvas, Artifacts)를 켜도록 하는 마법의 주문이 포함되어 있습니다.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-10 p-5 bg-gray-50 rounded-xl border border-gray-200">
+          <h4 class="font-bold text-gray-800 mb-2 text-sm"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>개발자의 팁</h4>
+          <ul class="text-sm text-gray-600 space-y-1 list-disc list-inside">
+              <li><b>주제 및 자료(0번)</b>에 텍스트 자료를 넣으면 맞춤형 퀴즈가, 주제(예: 태양계)만 적으면 AI 배경지식으로 콘텐츠가 생성됩니다.</li>
+              <li>한 번에 완벽하지 않아도 괜찮아요. AI가 만들어준 결과물을 보고 "배경색을 바꿔줘" 혹은 "문제를 더 어렵게 내줘"라고 채팅으로 추가 요청을 해보세요.</li>
+          </ul>
+      </div>
+
+      <div class="mt-6 p-5 bg-amber-50 rounded-xl border border-amber-200">
+          <h4 class="font-bold text-amber-900 mb-3 text-sm flex items-center"><i class="fas fa-exclamation-triangle mr-2"></i>꼭 알아두세요!</h4>
+          <div class="space-y-2 text-sm text-amber-900">
+              <div class="flex gap-2">
+                  <span class="font-bold flex-shrink-0">⚠️</span>
+                  <p><b>AI는 완벽하지 않아요:</b> 생성된 콘텐츠는 반드시 선생님이 검토하고 수정해서 사용하세요. 특히 사실 관계, 통계 수치는 다시 확인이 필요합니다.</p>
+              </div>
+              <div class="flex gap-2">
+                  <span class="font-bold flex-shrink-0">📱</span>
+                  <p><b>AI 플랫폼별 차이:</b> ChatGPT는 Canvas, Claude는 Artifacts, Gemini는 Code Execution이 자동으로 켜집니다. 각 AI마다 특성이 다르니 여러 번 시도해보세요.</p>
+              </div>
+              <div class="flex gap-2">
+                  <span class="font-bold flex-shrink-0">🎨</span>
+                  <p><b>웹 코드 결과물:</b> 생성된 HTML 파일은 다운로드하거나 복사해서 .html 파일로 저장하면 브라우저에서 바로 열 수 있어요!</p>
+              </div>
+              <div class="flex gap-2">
+                  <span class="font-bold flex-shrink-0">💡</span>
+                  <p><b>저작권 주의:</b> AI가 생성한 콘텐츠라도 기존 저작물과 유사할 수 있어요. 상업적 용도나 대외 공개 시 주의하세요.</p>
+              </div>
+          </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer style="text-align: center; padding: 20px 0; color: #888; font-size: 13px; font-family: sans-serif; line-height: 1.6;" class="shrink-0">
+    <div>
+        Developed by <strong>김주현(광평중)</strong> &nbsp;|&nbsp; 
+        <a href="https://instagram.com/kimju.zip" target="_blank" style="text-decoration: none; color: #E1306C; font-weight: bold;">
+            💟 @kimju.zip
+        </a>
+    </div>
+    <div style="font-size: 11px; opacity: 0.8;">
+        &copy; 2025. All Rights Reserved.
+    </div>
+  </footer>
+
+  <div id="copyModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl transform scale-95 transition-transform duration-200 flex flex-col max-h-[85vh]">
+      <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-3xl">
+        <h3 class="font-bold text-lg text-gray-800 flex items-center"><i class="fas fa-check-circle text-green-500 mr-2"></i> 프롬프트 준비 완료!</h3>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-400 transition"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 overflow-y-auto custom-scroll bg-gray-900 text-gray-300 font-mono text-xs md:text-sm leading-relaxed whitespace-pre-wrap" id="modalContent"></div>
+      <div class="p-4 bg-white border-t border-gray-100 rounded-b-3xl text-center">
+          <p class="text-sm text-gray-500 mb-3">이제 AI(ChatGPT, Gemini 등)에게 <b>붙여넣기(Ctrl+V)</b> 하세요.</p>
+          <button onclick="closeModal()" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-200">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="alertModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-200 overflow-hidden">
+      <div class="p-6 pb-0 flex justify-center"><div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-2 animate-bounce"><span class="text-3xl">💡</span></div></div>
+      <div class="px-6 py-2 text-center"><h3 class="text-lg font-bold text-gray-900 mb-2">필수 항목 누락</h3><p class="text-sm text-gray-500 leading-relaxed" id="alertMessage">내용이 입력되지 않았습니다.</p></div>
+      <div class="p-6 pt-4"><button onclick="closeAlert()" class="w-full py-3 bg-gray-900 hover:bg-black text-white font-bold rounded-xl transition shadow-lg transform active:scale-95">확인</button></div>
+    </div>
+  </div>
+
+  <div id="resetModal" class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform scale-95 transition-transform duration-200 overflow-hidden">
+        <div class="p-6 pb-0 flex justify-center"><div class="w-16 h-16 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center mb-2"><i class="fas fa-redo-alt text-2xl"></i></div></div>
+        <div class="px-6 py-2 text-center">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">모두 지우고 새로 쓸까요?</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">입력하신 내용이 모두 사라집니다.<br>계속하시겠습니까?</p>
+        </div>
+        <div class="p-6 pt-4 flex gap-3">
+            <button onclick="closeResetModal()" class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-xl transition">취소</button>
+            <button onclick="confirmReset()" class="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition shadow-lg shadow-red-200">초기화</button>
+        </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tabName) {
+        const views = ['view-builder', 'view-templates', 'view-guide'];
+        const buttons = ['btn-builder', 'btn-templates', 'btn-guide'];
+        
+        views.forEach(v => document.getElementById(v).classList.add('hidden'));
+        buttons.forEach(b => document.getElementById(b).className = 'tab-inactive h-full flex items-center gap-1 lg:gap-2 text-xs lg:text-sm transition-colors whitespace-nowrap px-2');
+        
+        document.getElementById('view-' + tabName).classList.remove('hidden');
+        document.getElementById('btn-' + tabName).className = 'tab-active h-full flex items-center gap-1 lg:gap-2 text-xs lg:text-sm transition-colors whitespace-nowrap px-2';
+    }
+
+    function setText(id, text) {
+        const input = document.getElementById(id);
+        input.value = text;
+        highlightInput(input);
+    }
+
+    function addText(id, text) {
+        const input = document.getElementById(id);
+        if(input.value && !input.value.endsWith('\n')) input.value += '\n';
+        input.value += text;
+        input.scrollTop = input.scrollHeight;
+        highlightInput(input);
+    }
+
+    function highlightInput(input) {
+        input.classList.add('ring-2', 'ring-blue-400', 'bg-blue-50');
+        setTimeout(() => input.classList.remove('ring-2', 'ring-blue-400', 'bg-blue-50'), 300);
+    }
+
+    function showFileGuide() {
+        const message = `
+        <div style="text-align: left;">
+            <p style="font-weight: bold; margin-bottom: 12px;">📎 파일 첨부 방법</p>
+            <p style="margin: 8px 0;">1️⃣ 아래 [프롬프트 생성 & 복사] 버튼을 먼저 눌러주세요</p>
+            <p style="margin: 8px 0;">2️⃣ AI 채팅창(ChatGPT/Claude/Gemini)을 여세요</p>
+            <p style="margin: 8px 0;">3️⃣ 파일 첨부 버튼(📎)을 눌러 PDF/이미지를 업로드하세요</p>
+            <p style="margin: 8px 0;">4️⃣ 복사한 프롬프트를 붙여넣기(Ctrl+V) 하세요!</p>
+            <p style="margin-top: 12px; color: #d97706;">💡 <b>순서가 중요합니다!</b> 파일 먼저 올리고 프롬프트를 붙여넣어야 AI가 파일을 인식합니다.</p>
+        </div>
+    `;
+        showAlert(message);
+    }
+
+    function resetAll() {
+        const m = document.getElementById('resetModal');
+        m.classList.remove('hidden');
+        setTimeout(()=> { m.classList.remove('opacity-0'); m.firstElementChild.classList.remove('scale-95'); }, 10);
+    }
+
+    function confirmReset() {
+        ['in-source', 'in-type', 'in-target', 'in-pedagogy', 'in-tone', 'in-format', 'in-design'].forEach(id => document.getElementById(id).value = '');
+        closeResetModal();
+    }
+
+    function closeResetModal() {
+        const m = document.getElementById('resetModal');
+        m.classList.add('opacity-0'); m.firstElementChild.classList.add('scale-95');
+        setTimeout(()=> m.classList.add('hidden'), 200);
+    }
+
+    function showCopySuccess() {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-[100] flex items-center gap-2 animate-bounce';
+        toast.innerHTML = '<i class="fas fa-check-circle"></i><span>클립보드에 복사되었습니다!</span>';
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 2000);
+    }
+
+    async function showModal(txt) {
+        const modal = document.getElementById('copyModal');
+        const content = document.getElementById('modalContent');
+        const cleanText = txt.trim();
+
+        try {
+            await navigator.clipboard.writeText(cleanText);
+            showCopySuccess();
+        } catch (err) {
+            const textArea = document.createElement("textarea");
+            textArea.value = cleanText;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try { 
+                document.execCommand('copy'); 
+                showCopySuccess();
+            } catch (err2) { 
+                console.error('복사 실패:', err2); 
+            }
+            document.body.removeChild(textArea);
+        }
+
+        content.textContent = cleanText;
+        modal.classList.remove('hidden');
+        setTimeout(() => { modal.classList.remove('opacity-0'); modal.firstElementChild.classList.remove('scale-95'); }, 10);
+    }
+    
+    function showAlert(msg) {
+        const alertEl = document.getElementById('alertMessage');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = msg;
+        alertEl.textContent = '';
+        alertEl.appendChild(tempDiv);
+        
+        const m = document.getElementById('alertModal');
+        m.classList.remove('hidden');
+        setTimeout(()=> { m.classList.remove('opacity-0'); m.firstElementChild.classList.remove('scale-95'); }, 10);
+    }
+
+    function closeAlert() {
+        const m = document.getElementById('alertModal');
+        m.classList.add('opacity-0'); m.firstElementChild.classList.add('scale-95');
+        setTimeout(()=> m.classList.add('hidden'), 200);
+    }
+
+    function closeModal() {
+        const m = document.getElementById('copyModal');
+        m.classList.add('opacity-0'); m.firstElementChild.classList.add('scale-95');
+        setTimeout(()=> m.classList.add('hidden'), 200);
+    }
+
+    function generateAndCopy() {
+        const v = {
+            source: document.getElementById('in-source').value,
+            type: document.getElementById('in-type').value,
+            target: document.getElementById('in-target').value,
+            pedagogy: document.getElementById('in-pedagogy').value,
+            tone: document.getElementById('in-tone').value,
+            design: document.getElementById('in-design').value,
+            format: document.getElementById('in-format').value
+        };
+        
+        if (!v.type) { showAlert('😅 <b>결과물 형태(1번)</b>를 먼저 선택해주세요!'); return; }
+
+        let role = "";
+        let mainInstruction = "";
+        let toolInstruction = "";
+        const combinedText = (v.type + " " + v.format).toLowerCase();
+
+        if (combinedText.includes("슬라이드") || combinedText.includes("ppt") || combinedText.includes("presentation")) {
+            role = "[ROLE: Presentation Expert & Web Developer]";
+            mainInstruction = "The content must be fully populated (No placeholders).";
+            toolInstruction = "-**Gemini:** Write full code & Show HTML Preview.open in canvas.";
+        } else if (
+            combinedText.includes("게임") || combinedText.includes("퀴즈") || combinedText.includes("시뮬") || 
+            combinedText.includes("대시보드") || combinedText.includes("타임라인") || combinedText.includes("드래그") || 
+            combinedText.includes("채팅") || combinedText.includes("마인드맵")
+        ) {
+            role = "[ROLE: Senior Web Developer]";
+            mainInstruction = "Write a complete, single-file HTML5 application (HTML/CSS/JS) for the requested content. No placeholders. Ensure it is fully interactive.";
+            toolInstruction = "-**Gemini:** Write full code & Show HTML Preview.open in canvas.";
+        } else if (combinedText.includes("카드뉴스") || combinedText.includes("인포그래픽")) {
+            role = "[ROLE: AI Art Director & Visual Designer]";
+            mainInstruction = "DO NOT write code. DIRECTLY GENERATE IMAGES using your DALL-E/Imagen tool. Create high-quality visual content based on the topic.";
+            toolInstruction = "- **Action:** Trigger Image Generation Tool immediately.";
+        } else if (combinedText.includes("지도안") || combinedText.includes("lesson plan")) {
+            role = "[ROLE: Expert Pedagogy Consultant]";
+            mainInstruction = "Write a detailed Lesson Plan including: 1. [Introduction-Body-Conclusion] with time allocation. 2. Teacher(T)-Student(S) Dialogue scenarios. 3. Materials Checklist. Format: Markdown.";
+            toolInstruction = "- **Action:** Write structured text.";
+        } else if (combinedText.includes("활동지") || combinedText.includes("문서") || combinedText.includes("document") || combinedText.includes("worksheet")) {
+            role = "[ROLE: Educational Content Planner]";
+            mainInstruction = "Create two distinct sections: 1. **[Student Worksheet]** with blanks for writing. 2. **[Teacher's Guide]** with answers and explanations. Format: Markdown.";
+            toolInstruction = "- **Action:** Write structured text.";
+        } else {
+            role = "[ROLE: Educational Content Creator]";
+            mainInstruction = "Create high-quality educational content based on the user's request. Organize it clearly.";
+            toolInstruction = "- **Action:** Use standard chat.";
+        }
+        
+        const prompt = `
+${role}
+**Mission:** ${mainInstruction}
+
+0. TOPIC & SOURCE
+${v.source || '(No specific source provided. Use your general knowledge.)'}
+
+1. OUTPUT TYPE (CRITICAL INSTRUCTION)
+${v.type}
+
+2. TARGET AUDIENCE
+${v.target || '- General Students'}
+
+3. PEDAGOGY & STRATEGY
+${v.pedagogy || '- Clear & Structured'}
+
+4. TONE & MANNER
+${v.tone || '- Professional & Educational'}
+
+5. VISUAL STYLE / DESCRIPTION
+${v.design || '- Clean & Modern'}
+
+6. FORMAT DETAILS
+${v.format || '- Well-organized output'}
+
+---
+[INTERFACE TRIGGER]
+${toolInstruction}
+`;
+        showModal(prompt.trim());
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            generateAndCopy();
+        }
+    });
+
+    const templates = [
+        `[역사 타임라인] 결과물: 한국사 근현대사 반응형 타임라인 웹앱\n대상: 중학교 3학년, 역사적 흐름 파악\n교수법: 사건의 원인과 결과 연결하기\n구성: 스크롤 시 연도별 사건 애니메이션 표시, 클릭 시 상세 설명 모달\n형식: HTML/CSS/JS 단일 파일, 모바일 최적화`,
+        `[과학 시뮬레이션] 결과물: 자유 낙하 운동 가상 실험 웹앱\n대상: 고등학교 1학년 통합과학\n교수법: 탐구 학습(Inquiry-based Learning)\n구성: 높이와 질량 조절 슬라이더, 낙하 버튼, 실시간 속도 그래프\n형식: HTML5 Canvas 활용, 물리 엔진 로직 포함`,
+        `[문학 캐릭터 챗봇] 결과물: 소설 '소나기'의 소년/소녀와 대화하는 프롬프트\n대상: 중학교 1학년 국어\n교수법: 감정 이입 및 페르소나 기법\n구성: 소설 속 말투 재현, 주요 사건에 대한 캐릭터의 속마음 답변\n형식: ChatGPT 시스템 프롬프트 형식`,
+        `[교육용 카드뉴스] 결과물: '기후 변화의 심각성' 카드뉴스 5장 기획안\n대상: 초등학교 고학년\n교수법: 문제 제기 -> 원인 -> 해결책 구조\n구성: 각 장별 들어갈 이미지 묘사(프롬프트)와 핵심 텍스트, 하단 해시태그\n형식: 표(Table) 형태로 정리`,
+        `[방탈출 게임] 결과물: 독도 지킴이 역사 퀴즈 방탈출 웹 게임\n대상: 초등학교 5~6학년\n교수법: 게이미피케이션(Gamification)\n구성: 3개의 스테이지(비밀번호 입력), 힌트 보기 기능, 성공 시 수료증 이미지\n형식: SweetAlert2 라이브러리 활용한 웹앱`,
+        `[토론 수업 자료] 결과물: 'AI의 창작물 저작권 인정해야 하나?' 찬반 토론 가이드\n대상: 고등학생\n교수법: 논쟁 수업 모형\n구성: 쟁점 분석, 찬성측 논거 3가지, 반대측 논거 3가지, 예상 반박 질문\n형식: 교사용 수업 지도안(Markdown)`,
+        `[안전 교육 인포그래픽] 결과물: 지진 발생 시 행동 요령 웹 인포그래픽\n대상: 전교생 및 교직원\n교수법: 시각적 전달(Visual Literacy)\n구성: 상황별(교실, 복도, 운동장) 대처법 아이콘 배치, 긴급 연락처\n형식: Tailwind CSS 활용한 반응형 웹 페이지`,
+        `[지리 대시보드] 결과물: 세계 기후 및 인구 데이터 대시보드\n대상: 중학교 사회\n교수법: 데이터 기반 의사결정\n구성: 세계 지도(SVG) 클릭 시 해당 국가 기후 그래프(Chart.js) 표시\n형식: 외부 CDN 활용한 인터랙티브 웹`,
+        `[단어 매칭 게임] 결과물: 영어 필수 영단어-뜻 연결하기 게임\n대상: 초등학교 3~4학년\n교수법: 반복 학습 및 즉각적 피드백\n구성: 왼쪽 영단어, 오른쪽 뜻 드래그 앤 드롭, 정답 시 '참 잘했어요' 효과음\n형식: 터치 이벤트 지원하는 웹앱`,
+        `[알고리즘 순서도] 결과물: '라면 끓이기'로 배우는 순서도(Flowchart)\n대상: 초등 실과/정보\n교수법: 컴퓨팅 사고력(절차적 사고)\n구성: 시작->물끓이기->면넣기->조건(익었나?)->끝 다이어그램 코드\n형식: Mermaid.js 문법 코드`,
+        `[학급 규칙 만들기] 결과물: 민주적 학급 규칙 제정 투표 웹 도구\n대상: 학급 전체\n교수법: 민주 시민 교육\n구성: 규칙 제안 게시판, 찬성/반대 투표 버튼, 실시간 득표율 공개\n형식: 로컬 스토리지 저장 기능 포함`,
+        `[수학 원리 계산기] 결과물: 피타고라스 정리 시각화 및 계산기\n대상: 중학교 2학년 수학\n교수법: 수의 시각화\n구성: 직각삼각형 각 변의 길이 입력 시 사각형 넓이 변화 애니메이션\n형식: D3.js 또는 Canvas API 활용`,
+        `[체육 기록 측정] 결과물: 체력장 기록 관리 웹앱\n대상: 초중고 체육 수업\n교수법: 데이터 기반 자기 주도 학습\n구성: 스톱워치, 달리기/점프 기록 입력, 자동 순위표 생성, 개인 성장 그래프\n형식: Chart.js 활용한 반응형 웹`,
+        `[음악 리듬 게임] 결과물: 피아노 건반 리듬 게임\n대상: 초등 음악 수업\n교수법: 게임 기반 학습\n구성: 떨어지는 음표에 맞춰 건반 누르기, 점수 및 콤보 시스템\n형식: Web Audio API 활용`,
+        `[미술 색채 학습] 결과물: RGB/HSL 컬러 믹서\n대상: 중학교 미술\n교수법: 탐구 및 실험 학습\n구성: 슬라이더로 색상 조합, 보색/유사색 자동 제안, 색상환 표시\n형식: Canvas API 활용`,
+        `[환경 캠페인] 결과물: 탄소발자국 계산기 & 재활용 퀴즈\n대상: 초등 고학년\n교수법: 실천 중심 환경 교육\n구성: 일상 활동 입력 시 탄소 배출량 계산, 재활용 분류 OX 퀴즈\n형식: 인터랙티브 웹앱`,
+        `[AI 윤리 교육] 결과물: AI 윤리 딜레마 선택 시뮬레이션\n대상: 고등학생\n교수법: 도덕적 딜레마 토론\n구성: 자율주행차 트롤리 딜레마, AI 채용 공정성 등 시나리오별 선택과 결과\n형식: 분기형 스토리텔링 웹`,
+        `[기억력 게임] 결과물: 숫자/이미지/패턴 기억 훈련\n대상: 전 학년\n교수법: 인지 발달 훈련\n구성: 순차적으로 나타나는 숫자/이미지 기억 후 맞추기, 레벨 시스템\n형식: 타이머 기능 포함 웹 게임`,
+        `[독서 기록장] 결과물: 읽은 책 관리 웹앱\n대상: 초중고 독서 교육\n교수법: 자기 주도 독서\n구성: 책 정보 입력, 별점/한줄평, 독서량 통계 그래프, 추천 도서 목록\n형식: 로컬스토리지 활용`,
+        `[세계 문화 탐험] 결과물: 인터랙티브 세계지도\n대상: 초등 사회\n교수법: 문화 다양성 이해\n구성: 나라 클릭 시 문화/음식/언어 소개, 퀴즈 기능, 여행 스탬프 수집\n형식: SVG 지도 활용 웹앱`
+    ];
+
+    function copyTemplate(index) {
+        const header = `[MANDATORY ACTION: CREATE WEB APP ARTIFACT]\n**System:** You are an Expert Educational Developer.\n**Task:** Create a fully functional, interactive Web App.\n**Output Format:** Single HTML File (index.html).\n\n[INTERFACE TRIGGER]\n- **ChatGPT:** OPEN CANVAS immediately.\n- **Claude:** GENERATE ARTIFACT immediately.\n\n`;
+        showModal(header + templates[index]);
+    }
+  </script>
+</body>
+</html>
